@@ -1,42 +1,16 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Bot, Power } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Bot } from "lucide-react";
 
 interface FloatingBotProps {
   isActive: boolean;
-  onToggle: () => void;
   onClick: () => void;
 }
 
-const FloatingBot: React.FC<FloatingBotProps> = ({ isActive, onToggle, onClick }) => {
-  const { toast } = useToast();
-
-  const handleToggle = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onToggle();
-    toast({
-      title: isActive ? "SecureBot Deactivated" : "SecureBot Activated",
-      description: isActive ? "Bot is now offline" : "Bot is now online and ready",
-    });
-  };
-
+const FloatingBot: React.FC<FloatingBotProps> = ({ isActive, onClick }) => {
   return (
-    <div className="floating-bot flex flex-col items-end gap-2">
-      <Button
-        variant="outline"
-        size="icon"
-        className={`rounded-full p-2 transition-all duration-300 hover:scale-110 ${
-          isActive
-            ? "bg-cyber-primary text-cyber-dark cyber-border animate-glow"
-            : "bg-cyber-dark/80 text-cyber-light border-cyber-primary/50"
-        }`}
-        onClick={handleToggle}
-      >
-        <Power className="h-6 w-6" />
-      </Button>
-      
+    <div className="floating-bot">
       <Button
         variant="outline"
         size="icon"

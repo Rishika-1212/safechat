@@ -16,18 +16,6 @@ const Index = () => {
     }
   }, []);
 
-  useEffect(() => {
-    // Save state to storage
-    localStorage.setItem("securebotState", JSON.stringify(isActive));
-  }, [isActive]);
-
-  const handleToggle = () => {
-    setIsActive(!isActive);
-    if (!isActive) {
-      setIsChatOpen(false);
-    }
-  };
-
   const handleBotClick = () => {
     setIsChatOpen(!isChatOpen);
   };
@@ -36,7 +24,6 @@ const Index = () => {
     <div className="min-h-screen">
       <FloatingBot
         isActive={isActive}
-        onToggle={handleToggle}
         onClick={handleBotClick}
       />
       {isActive && isChatOpen && <ChatInterface onClose={() => setIsChatOpen(false)} />}
