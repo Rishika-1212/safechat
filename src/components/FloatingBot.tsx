@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Robot, Power } from "lucide-react";
+import { Bot, Power } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface FloatingBotProps {
@@ -48,7 +48,7 @@ const FloatingBot: React.FC<FloatingBotProps> = ({ isActive, onToggle, onClick }
         onClick={onClick}
         disabled={!isActive}
       >
-        <Robot className="h-8 w-8" />
+        <Bot className="h-8 w-8" />
       </Button>
     </div>
   );
