@@ -1,15 +1,17 @@
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, X, FileUp } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Message {
   id: number;
   text: string;
   isBot: boolean;
+  file?: File;
 }
 
 interface ChatInterfaceProps {
@@ -17,14 +19,48 @@ interface ChatInterfaceProps {
 }
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose }) => {
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Hello! I'm SecureBot, your cybersecurity assistant. How can I help you today?",
+      text: "Hello! I'm SecureBot, your cybersecurity assistant. I can help you with cybersecurity questions and analyze files for potential threats. How can I assist you today?",
       isBot: true,
     },
   ]);
   const [input, setInput] = useState("");
+
+  const getBotResponse = (userMessage: string): string => {
+    const normalizedMessage = userMessage.toLowerCase().trim();
+    
+    // Basic conversation patterns
+    const responses: { [key: string]: string } = {
+      "hi": "Hello! How can I help you today?",
+      "hello": "Hi there! What can I do for you?",
+      "hey": "Hey! How can I assist you?",
+      "what are you": "I'm SecureBot, an AI-powered cybersecurity assistant. I can help you with security-related questions and analyze files for potential threats.",
+      "what can you do": "I can help you with:\n- Answering cybersecurity questions\n- Analyzing files for potential threats\n- Providing security recommendations\n- Explaining security concepts\nJust ask me anything!",
+      "help": "I can assist you with cybersecurity questions, file analysis, and security recommendations. What specific help do you need?",
+    };
+
+    // Check for exact matches
+    for (const [key, response] of Object.entries(responses)) {
+      if (normalizedMessage === key) {
+        return response;
+      }
+    }
+
+    // Check for partial matches
+    if (normalizedMessage.includes("who are you") || normalizedMessage.includes("what are you")) {
+      return responses["what are you"];
+    }
+    if (normalizedMessage.includes("can you do") || normalizedMessage.includes("your capabilities")) {
+      return responses["what can you do"];
+    }
+
+    // Default response
+    return "I understand you're asking about " + userMessage + ". Could you please provide more details about your question? I'm here to help with cybersecurity-related queries and file analysis.";
+  };
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -38,11 +74,65 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose }) => {
     setMessages([...messages, newMessage]);
     setInput("");
     
-    // Simulate bot response
+    // Generate bot response
     setTimeout(() => {
       const botResponse = {
         id: messages.length + 2,
-        text: "I'm processing your request. This is a placeholder response for now.",
+        text: getBotResponse(input),
+        isBot: true,
+      };
+      setMessages((prev) => [...prev, botResponse]);
+    }, 500);
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload files smaller than 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check file type
+    const allowedTypes = [
+      'text/plain',
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'image/jpeg',
+      'image/png'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Unsupported file type",
+        description: "Please upload only text, PDF, Word, or image files",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Add file message
+    const newMessage = {
+      id: messages.length + 1,
+      text: `Uploaded file: ${file.name}`,
+      isBot: false,
+      file: file,
+    };
+
+    setMessages([...messages, newMessage]);
+
+    // Bot response for file upload
+    setTimeout(() => {
+      const botResponse = {
+        id: messages.length + 2,
+        text: `I've received your file "${file.name}". I'll analyze it for potential security concerns. (This is a placeholder response - actual file analysis would be implemented with backend integration)`,
         isBot: true,
       };
       setMessages((prev) => [...prev, botResponse]);
@@ -84,7 +174,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose }) => {
                     : "bg-cyber-primary/10 text-cyber-primary border border-cyber-primary/50"
                 }`}
               >
-                <p className="cyber-text text-sm">{message.text}</p>
+                <p className="cyber-text text-sm whitespace-pre-line">{message.text}</p>
+                {message.file && (
+                  <div className="mt-2 text-xs text-cyber-primary/70">
+                    📎 {message.file.name} ({(message.file.size / 1024).toFixed(1)} KB)
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -93,10 +188,18 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose }) => {
 
       <div className="p-4 border-t border-cyber-primary">
         <div className="flex gap-2">
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            onChange={handleFileUpload}
+            accept=".txt,.pdf,.doc,.docx,.jpg,.jpeg,.png"
+          />
           <Button
             variant="outline"
             size="icon"
             className="text-cyber-primary hover:text-cyber-accent"
+            onClick={() => fileInputRef.current?.click()}
           >
             <FileUp className="h-5 w-5" />
           </Button>
