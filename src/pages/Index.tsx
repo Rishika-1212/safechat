@@ -1,12 +1,46 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState, useEffect } from "react";
+import FloatingBot from "@/components/FloatingBot";
+import ChatInterface from "@/components/ChatInterface";
+import { Toaster } from "@/components/ui/toaster";
 
 const Index = () => {
+  const [isActive, setIsActive] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
+  useEffect(() => {
+    // Load saved state from storage
+    const savedState = localStorage.getItem("securebotState");
+    if (savedState) {
+      setIsActive(JSON.parse(savedState));
+    }
+  }, []);
+
+  useEffect(() => {
+    // Save state to storage
+    localStorage.setItem("securebotState", JSON.stringify(isActive));
+  }, [isActive]);
+
+  const handleToggle = () => {
+    setIsActive(!isActive);
+    if (!isActive) {
+      setIsChatOpen(false);
+    }
+  };
+
+  const handleBotClick = () => {
+    setIsChatOpen(!isChatOpen);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen">
+      <FloatingBot
+        isActive={isActive}
+        onToggle={handleToggle}
+        onClick={handleBotClick}
+      />
+      {isActive && isChatOpen && <ChatInterface onClose={() => setIsChatOpen(false)} />}
+      <Toaster />
     </div>
   );
 };
